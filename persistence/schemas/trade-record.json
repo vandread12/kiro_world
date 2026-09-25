@@ -1,0 +1,63 @@
+{
+  "title": "TradeRecord",
+  "description": "Rastro de auditoria inmutable de un intercambio. PK=TRADE#<trade_id>, SK=RECORD. Escrito como cuarta operacion de la TransactWriteItems del trade. Sin TTL: la auditoria antifraude necesita historico completo.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "PK","SK","entity_type","entity_version",
+    "trade_id","from_player","to_player",
+    "item_def","instance_id","executed_at"
+  ],
+  "properties": {
+    "PK": { "type": "string", "pattern": "^TRADE#t_[0-9a-f]{8,32}$" },
+    "SK": { "const": "RECORD" },
+    "entity_type": { "const": "TRADE" },
+    "entity_version": { "$ref": "_common.json#/$defs/schemaVersion" },
+
+    "trade_id":    { "type": "string", "pattern": "^t_[0-9a-f]{8,32}$" },
+    "from_player": { "$ref": "_common.json#/$defs/playerPK" },
+    "to_player":   { "$ref": "_common.json#/$defs/playerPK" },
+
+    "item_def":    { "$ref": "_common.json#/$defs/itemDefId" },
+    "instance_id": {
+      "oneOf": [
+        { "$ref": "_common.json#/$defs/instanceId" },
+        { "const": "STACK" }
+      ]
+    },
+    "quantity": { "type": "integer", "minimum": 1 },
+
+    "counter_currency": { "$ref": "_common.json#/$defs/currencyCode" },
+    "counter_amount":   { "type": "integer", "minimum": 0 },
+
+    "from_version_before": {
+      "$ref": "_common.json#/$defs/lockVersion",
+      "description": "Version del item en el emisor exigida por la ConditionExpression. Deja constancia del estado contra el que se valido la transaccion."
+    },
+    "executed_at": { "$ref": "_common.json#/$defs/epochMillis" },
+    "client_ip_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "SHA-256 de la IP con sal de servidor. Correlaciona cuentas mula sin almacenar PII en claro."
+    }
+  },
+  "examples": [
+    {
+      "PK": "TRADE#t_4f8a1c92",
+      "SK": "RECORD",
+      "entity_type": "TRADE",
+      "entity_version": 1,
+      "trade_id": "t_4f8a1c92",
+      "from_player": "PLAYER#7f3a9c21-4e88-4b0a-9d13-6ac2f0e51b77",
+      "to_player":   "PLAYER#22b4de19-8c07-4a55-b1e2-0f9c7d3a4e10",
+      "item_def": "gauntlet_mk2",
+      "instance_id": "a91f4d02",
+      "quantity": 1,
+      "counter_currency": "SHARD",
+      "counter_amount": 2500,
+      "from_version_before": 3,
+      "executed_at": 1788224400000,
+      "client_ip_hash": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+    }
+  ]
+}

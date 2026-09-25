@@ -1,0 +1,41 @@
+{
+  "title": "SquadMember",
+  "description": "Pertenencia de un jugador a un escuadron. PK=SQUAD#<uuid>, SK=MEMBER#<player_uuid>. El roster se obtiene con una Query de prefijo; la relacion inversa (jugador -> escuadron) la resuelve squad_ref en el perfil.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["PK","SK","entity_type","entity_version","player_ref","role","joined_at"],
+  "properties": {
+    "PK": { "$ref": "_common.json#/$defs/squadPK" },
+    "SK": {
+      "type": "string",
+      "pattern": "^MEMBER#[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "entity_type": { "const": "MEMBER" },
+    "entity_version": { "$ref": "_common.json#/$defs/schemaVersion" },
+
+    "player_ref": { "$ref": "_common.json#/$defs/playerPK" },
+    "display_name": {
+      "type": "string",
+      "maxLength": 16,
+      "description": "Desnormalizado para no necesitar N lecturas de perfil al pintar el roster. Se acepta que quede obsoleto tras un cambio de nombre; el job silver del Lakehouse detecta la divergencia."
+    },
+    "role": { "type": "string", "enum": ["LEADER","OFFICER","MEMBER"] },
+    "joined_at": { "$ref": "_common.json#/$defs/epochMillis" },
+    "invited_by": { "$ref": "_common.json#/$defs/playerPK" }
+  },
+
+  "$comment": "No escribe gsi1pk/gsi1sk: el roster se obtiene con Query PK=SQUAD# SK begins_with MEMBER#, y la relacion inversa con squad_ref del perfil. GSI1 queda reservado al inventario.",
+
+  "examples": [
+    {
+      "PK": "SQUAD#1b2c3d4e-5f60-4718-8293-aabbccddeeff",
+      "SK": "MEMBER#7f3a9c21-4e88-4b0a-9d13-6ac2f0e51b77",
+      "entity_type": "MEMBER",
+      "entity_version": 1,
+      "player_ref": "PLAYER#7f3a9c21-4e88-4b0a-9d13-6ac2f0e51b77",
+      "display_name": "NeonRonin",
+      "role": "LEADER",
+      "joined_at": 1788048000000
+    }
+  ]
+}

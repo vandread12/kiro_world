@@ -1,0 +1,15 @@
+; Godot project file para el cliente del Game Loop de PixelRift.
+; Sirve para desarrollo y validación de los scripts del cliente AR.
+; El registro de class_name se resuelve automáticamente al escanear res://.
+
+config_version=5
+
+[application]
+
+config/name="PixelRift Client"
+config/features=PackedStringArray("4.7", "Forward Plus")
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
+renderer/rendering_method.mobile="mobile"

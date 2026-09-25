@@ -1,0 +1,107 @@
+{
+  "title": "MatchResult",
+  "description": "Resultado de una partida desde la perspectiva de un jugador. PK=PLAYER#<uuid>, SK=MATCH#<ts_desc>#<match_id>. TTL de 30 dias: el borrado por TTL no consume WCU. El historial largo vive en S3, unos 20x mas barato por GB.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "PK","SK","entity_type","entity_version",
+    "match_id","outcome","season","started_at","ended_at","ttl"
+  ],
+  "properties": {
+    "PK": { "$ref": "_common.json#/$defs/playerPK" },
+    "SK": {
+      "type": "string",
+      "pattern": "^MATCH#[0-9]{13}#m_[0-9a-f]{6,16}$",
+      "description": "El segmento ts_desc es (9999999999999 - ended_at) con relleno a 13 digitos. El orden lexicografico natural ya es de mas reciente a mas antiguo: 'ultimas 20 partidas' es Query con Limit 20, sin ScanIndexForward ni ordenacion en cliente."
+    },
+    "entity_type": { "const": "MATCH" },
+    "entity_version": { "$ref": "_common.json#/$defs/schemaVersion" },
+
+    "match_id":  { "type": "string", "pattern": "^m_[0-9a-f]{6,16}$" },
+    "server_id": { "type": "string", "maxLength": 64 },
+    "outcome":   { "$ref": "_common.json#/$defs/matchOutcome" },
+    "season":    { "$ref": "_common.json#/$defs/seasonId" },
+    "squad_ref": { "$ref": "_common.json#/$defs/squadPK" },
+
+    "started_at": { "$ref": "_common.json#/$defs/epochMillis" },
+    "ended_at":   { "$ref": "_common.json#/$defs/epochMillis" },
+
+    "performance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "damage_dealt":   { "type": "integer", "minimum": 0 },
+        "damage_taken":   { "type": "integer", "minimum": 0 },
+        "strikes_landed": { "type": "integer", "minimum": 0 },
+        "clinch_wins":    { "type": "integer", "minimum": 0 },
+        "waves_survived": { "type": "integer", "minimum": 0 },
+        "xp_earned":      { "type": "integer", "minimum": 0 }
+      }
+    },
+
+    "rewards": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "currencies": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 },
+          "propertyNames": { "$ref": "_common.json#/$defs/currencyCode" }
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["item_def","instance_id"],
+            "properties": {
+              "item_def":    { "$ref": "_common.json#/$defs/itemDefId" },
+              "instance_id": {
+                "oneOf": [
+                  { "$ref": "_common.json#/$defs/instanceId" },
+                  { "const": "STACK" }
+                ]
+              },
+              "quantity": { "type": "integer", "minimum": 1 }
+            }
+          }
+        }
+      },
+      "description": "Copia inmutable de lo concedido. Fuente de verdad para reconciliar inventario ante reclamaciones de recompensa no recibida."
+    },
+
+    "settlement_id": {
+      "type": "string",
+      "description": "operation_id de la TransactWriteItems de MATCH_END. Correlaciona el resultado con su guardian de idempotencia."
+    },
+
+    "ttl": { "$ref": "_common.json#/$defs/epochSeconds" }
+  },
+  "examples": [
+    {
+      "PK": "PLAYER#7f3a9c21-4e88-4b0a-9d13-6ac2f0e51b77",
+      "SK": "MATCH#8211779199999#m_8f21ba",
+      "entity_type": "MATCH",
+      "entity_version": 1,
+      "match_id": "m_8f21ba",
+      "server_id": "pixelft-udp-server-7d9f4",
+      "outcome": "INVASION_REPELLED",
+      "season": 3,
+      "squad_ref": "SQUAD#1b2c3d4e-5f60-4718-8293-aabbccddeeff",
+      "started_at": 1788220200000,
+      "ended_at":   1788220800000,
+      "performance": {
+        "damage_dealt": 18420, "damage_taken": 9110,
+        "strikes_landed": 214, "clinch_wins": 7,
+        "waves_survived": 12,  "xp_earned": 3400
+      },
+      "rewards": {
+        "currencies": { "SHARD": 480 },
+        "items": [{ "item_def": "gauntlet_mk2", "instance_id": "a91f4d02", "quantity": 1 }]
+      },
+      "settlement_id": "settle_m_8f21ba_7f3a9c21",
+      "ttl": 1790812800
+    }
+  ]
+}

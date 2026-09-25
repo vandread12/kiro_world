@@ -1,0 +1,84 @@
+{
+  "title": "PixelRift - Definiciones compartidas",
+  "description": "Tipos reutilizables por todas las entidades de la tabla pixelft-core. No representa un documento almacenable por si mismo.",
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "UUID en minusculas. En la practica el backend emite v4 para garantizar distribucion uniforme sobre el espacio de hash de la Partition Key."
+    },
+    "playerPK": {
+      "type": "string",
+      "pattern": "^PLAYER#[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "squadPK": {
+      "type": "string",
+      "pattern": "^SQUAD#[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "epochMillis": {
+      "type": "integer",
+      "minimum": 1577836800000,
+      "maximum": 4102444800000,
+      "description": "Timestamp Unix en milisegundos. El minimo (2020-01-01) descarta segundos interpretados como milisegundos, error de conversion habitual."
+    },
+    "epochSeconds": {
+      "type": "integer",
+      "minimum": 1577836800,
+      "maximum": 4102444800,
+      "description": "Timestamp Unix en SEGUNDOS. Formato obligatorio del atributo ttl: DynamoDB ignora los TTL expresados en milisegundos y el borrado nunca ocurre."
+    },
+    "lockVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Contador de bloqueo optimista. Toda escritura incrementa en 1 bajo ConditionExpression: version = :expected."
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Version del esquema del documento. Permite lectura tolerante durante migraciones sin backfill."
+    },
+    "seasonId": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 999
+    },
+    "itemDefId": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]{3,48}$",
+      "description": "Identificador del catalogo de items (definicion, no instancia). snake_case para que sea seguro dentro de la Sort Key."
+    },
+    "instanceId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}$",
+      "description": "Identificador de instancia unico GLOBALMENTE para items no apilables. Dos documentos con el mismo item_def + instance_id en jugadores distintos es, por definicion, corrupcion de datos."
+    },
+    "currencyCode": {
+      "type": "string",
+      "enum": ["SHARD", "CREDIT", "RIFT_TOKEN"]
+    },
+    "combatStyle": {
+      "type": "string",
+      "enum": ["STRIKING", "CLINCH", "GRAPPLE"],
+      "description": "Alineado con los flags del payload UDP (MULTIPLAYER_TECHNICAL_SPEC seccion 4.1)."
+    },
+    "itemState": {
+      "type": "string",
+      "enum": ["OWNED", "EQUIPPED", "ESCROW", "CONSUMED"],
+      "description": "Solo OWNED es intercambiable. ESCROW marca un item retenido durante un trade en curso."
+    },
+    "acquisitionSource": {
+      "type": "string",
+      "enum": ["MATCH_REWARD", "TRADE", "PURCHASE", "CRAFT", "GRANT_ADMIN", "SEASON_PASS"],
+      "description": "GRANT_ADMIN existe para que la auditoria distinga un item legitimo de soporte de una inyeccion no rastreable."
+    },
+    "matchOutcome": {
+      "type": "string",
+      "enum": ["INVASION_REPELLED", "INVASION_FAILED", "ABANDONED", "SERVER_ABORT"]
+    },
+    "entityRef": {
+      "type": "string",
+      "pattern": "^(PLAYER|SQUAD)#[0-9a-f-]{36}$",
+      "description": "Referencia debil a otra entidad. DynamoDB no aplica integridad referencial; la consistencia se valida en el repository layer."
+    }
+  }
+}

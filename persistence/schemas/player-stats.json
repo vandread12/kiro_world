@@ -1,0 +1,67 @@
+{
+  "title": "PlayerStats",
+  "description": "Estadisticas por temporada del jugador. PK=PLAYER#<uuid>, SK=STATS#S<season>. Separado del perfil para que el cierre de temporada sea un Put nuevo en lugar de una reescritura del perfil.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["PK", "SK", "entity_type", "entity_version", "season", "combat", "updated_at"],
+  "properties": {
+    "PK": { "$ref": "_common.json#/$defs/playerPK" },
+    "SK": { "type": "string", "pattern": "^STATS#S[0-9]{1,3}$" },
+    "entity_type": { "const": "PLAYER_STATS" },
+    "entity_version": { "$ref": "_common.json#/$defs/schemaVersion" },
+    "season": { "$ref": "_common.json#/$defs/seasonId" },
+
+    "combat": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["matches_played", "invasions_repelled"],
+      "properties": {
+        "matches_played":       { "type": "integer", "minimum": 0 },
+        "invasions_repelled":   { "type": "integer", "minimum": 0 },
+        "invasions_failed":     { "type": "integer", "minimum": 0 },
+        "matches_abandoned":    { "type": "integer", "minimum": 0 },
+        "damage_dealt":         { "type": "integer", "minimum": 0 },
+        "damage_taken":         { "type": "integer", "minimum": 0 },
+        "strikes_landed":       { "type": "integer", "minimum": 0 },
+        "clinch_wins":          { "type": "integer", "minimum": 0 },
+        "playtime_seconds":     { "type": "integer", "minimum": 0 }
+      },
+      "description": "Todos los contadores se mutan con ADD atomico en la transaccion de MATCH_END, nunca con read-modify-write."
+    },
+
+    "rank": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tier":        { "type": "string", "enum": ["BRONZE","SILVER","GOLD","PLATINUM","RIFT"] },
+        "points":      { "type": "integer", "minimum": 0, "maximum": 10000 },
+        "peak_points": { "type": "integer", "minimum": 0, "maximum": 10000 }
+      },
+      "description": "El ranking ordenado NO se resuelve aqui. El top-N vive en Redis (Sorted Set) alimentado desde el CDC."
+    },
+
+    "updated_at": { "$ref": "_common.json#/$defs/epochMillis" }
+  },
+  "examples": [
+    {
+      "PK": "PLAYER#7f3a9c21-4e88-4b0a-9d13-6ac2f0e51b77",
+      "SK": "STATS#S3",
+      "entity_type": "PLAYER_STATS",
+      "entity_version": 1,
+      "season": 3,
+      "combat": {
+        "matches_played": 214,
+        "invasions_repelled": 141,
+        "invasions_failed": 68,
+        "matches_abandoned": 5,
+        "damage_dealt": 1284900,
+        "damage_taken": 998210,
+        "strikes_landed": 20418,
+        "clinch_wins": 892,
+        "playtime_seconds": 268400
+      },
+      "rank": { "tier": "PLATINUM", "points": 4210, "peak_points": 4488 },
+      "updated_at": 1788220800000
+    }
+  ]
+}

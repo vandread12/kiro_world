@@ -1,0 +1,81 @@
+# ============================================================
+# PixelRift / kiro_world — .gitignore
+# ============================================================
+
+# ------------------------------------------------------------
+# Terraform
+# ------------------------------------------------------------
+# Providers descargados (cientos de MB) y estado local
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+# Los .tfvars pueden contener valores sensibles por entorno.
+# Los de ejemplo (envs/*.tfvars) SÍ se versionan porque no llevan secretos;
+# si algún día se añaden secretos, mover a *.auto.tfvars y descomentar:
+# *.auto.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform.lock.hcl
+
+# ------------------------------------------------------------
+# Go
+# ------------------------------------------------------------
+# Binarios compilados
+/game_loop/server/gameserver
+/game_loop/server/gameserver.exe
+*.exe
+*.test
+*.out
+# Directorio de build del Lambda (se genera con archive_file)
+**/.build/
+# Vendor (usamos go modules, no vendoring)
+/vendor/
+
+# ------------------------------------------------------------
+# Godot 4
+# ------------------------------------------------------------
+# Caché del editor (se regenera al abrir el proyecto)
+.godot/
+# Exportaciones
+export.cfg
+export_presets.cfg
+*.import
+.import/
+# Binarios exportados
+*.pck
+*.zip
+*.apk
+*.aab
+
+# ------------------------------------------------------------
+# Secretos y credenciales (nunca subir)
+# ------------------------------------------------------------
+.env
+.env.*
+*.pem
+*.key
+credentials.json
+aws-credentials
+.aws/
+
+# ------------------------------------------------------------
+# Python (bytecode del Lambda de transformación)
+# ------------------------------------------------------------
+__pycache__/
+*.pyc
+
+# ------------------------------------------------------------
+# Sistema operativo / editor
+# ------------------------------------------------------------
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+*~
+.vscode/
+.idea/

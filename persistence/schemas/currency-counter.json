@@ -1,0 +1,41 @@
+{
+  "title": "CurrencyCounter",
+  "description": "Saldo de moneda blanda/dura. PK=PLAYER#<uuid>, SK=CURRENCY#<code>. Documento deliberadamente minimo: es el item mas escrito del modelo y su tamano se traduce directamente en WCU.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["PK", "SK", "entity_type", "entity_version", "code", "bal", "updated_at"],
+  "properties": {
+    "PK": { "$ref": "_common.json#/$defs/playerPK" },
+    "SK": {
+      "type": "string",
+      "pattern": "^CURRENCY#(SHARD|CREDIT|RIFT_TOKEN)$"
+    },
+    "entity_type": { "const": "CURRENCY" },
+    "entity_version": { "$ref": "_common.json#/$defs/schemaVersion" },
+    "code": { "$ref": "_common.json#/$defs/currencyCode" },
+    "bal": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 999999999,
+      "description": "Nombre abreviado a proposito (balance -> bal). En DynamoDB la clave del atributo cuenta para el tamano del item y por tanto para RCU/WCU. Mutado con ADD bal :delta + ConditionExpression: bal >= :abs_delta."
+    },
+    "lifetime_earned": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Acumulado historico, solo crece. Sirve al Lakehouse para modelar la economia sin necesidad de reconstruirla desde el CDC."
+    },
+    "updated_at": { "$ref": "_common.json#/$defs/epochMillis" }
+  },
+  "examples": [
+    {
+      "PK": "PLAYER#7f3a9c21-4e88-4b0a-9d13-6ac2f0e51b77",
+      "SK": "CURRENCY#SHARD",
+      "entity_type": "CURRENCY",
+      "entity_version": 1,
+      "code": "SHARD",
+      "bal": 12480,
+      "lifetime_earned": 98120,
+      "updated_at": 1788220800000
+    }
+  ]
+}

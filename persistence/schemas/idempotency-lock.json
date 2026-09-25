@@ -1,0 +1,45 @@
+{
+  "title": "IdempotencyLock",
+  "description": "Guardian de idempotencia. PK=IDEM#<operation_id>, SK=LOCK. Se inserta como PRIMERA operacion de toda TransactWriteItems con ConditionExpression: attribute_not_exists(PK). Si Agones reprograma la liquidacion porque el pod murio tras el commit pero antes del ack, la transaccion falla completa con ConditionalCheckFailed y el servidor interpreta ese fallo concreto como 'ya liquidado'.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["PK","SK","entity_type","entity_version","operation_kind","created_at","ttl"],
+  "properties": {
+    "PK": { "type": "string", "pattern": "^IDEM#[A-Za-z0-9_.:-]{8,128}$" },
+    "SK": { "const": "LOCK" },
+    "entity_type": { "const": "IDEM" },
+    "entity_version": { "$ref": "_common.json#/$defs/schemaVersion" },
+
+    "operation_kind": {
+      "type": "string",
+      "enum": ["MATCH_SETTLE","TRADE","PURCHASE","SEASON_ROLLOVER","ADMIN_GRANT"]
+    },
+    "subject": {
+      "$ref": "_common.json#/$defs/entityRef",
+      "description": "Entidad principal afectada. Facilita el diagnostico cuando una liquidacion se rechaza de forma repetida."
+    },
+    "correlation_id": {
+      "type": "string",
+      "maxLength": 128,
+      "description": "match_id o trade_id de origen. Un MATCH_END que supera los 25 items se parte en sub-transacciones con su propio operation_id pero el mismo correlation_id."
+    },
+    "created_at": { "$ref": "_common.json#/$defs/epochMillis" },
+    "ttl": {
+      "$ref": "_common.json#/$defs/epochSeconds",
+      "description": "48 horas. Debe cubrir con holgura la ventana de reintentos de Agones. El error siempre se comete hacia el lado largo: un TTL corto reabre la ventana de doble liquidacion."
+    }
+  },
+  "examples": [
+    {
+      "PK": "IDEM#settle_m_8f21ba_7f3a9c21",
+      "SK": "LOCK",
+      "entity_type": "IDEM",
+      "entity_version": 1,
+      "operation_kind": "MATCH_SETTLE",
+      "subject": "PLAYER#7f3a9c21-4e88-4b0a-9d13-6ac2f0e51b77",
+      "correlation_id": "m_8f21ba",
+      "created_at": 1788220800000,
+      "ttl": 1788393600
+    }
+  ]
+}

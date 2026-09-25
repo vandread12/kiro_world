@@ -1,0 +1,43 @@
+{
+  "title": "SquadStatsShard",
+  "description": "Fragmento de las estadisticas agregadas del escuadron. PK=SQUAD#<uuid>, SK=STATS#S<season>#SHARD#<n>. El servidor escribe en shard = hash(player_uuid) % stats_shard_count; la lectura hace Query del prefijo STATS#S<season># y suma en aplicacion. Convierte un item con ~100 escritores concurrentes en 10 items con ~10, quedando lejos del limite de 1000 WCU por particion.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["PK","SK","entity_type","entity_version","season","shard_id","updated_at"],
+  "properties": {
+    "PK": { "$ref": "_common.json#/$defs/squadPK" },
+    "SK": { "type": "string", "pattern": "^STATS#S[0-9]{1,3}#SHARD#[0-9]{1,2}$" },
+    "entity_type": { "const": "SQUAD_STATS_SHARD" },
+    "entity_version": { "$ref": "_common.json#/$defs/schemaVersion" },
+
+    "season":   { "$ref": "_common.json#/$defs/seasonId" },
+    "shard_id": { "type": "integer", "minimum": 0, "maximum": 49 },
+
+    "invasions_repelled":   { "type": "integer", "minimum": 0 },
+    "invasions_failed":     { "type": "integer", "minimum": 0 },
+    "total_damage_dealt":   { "type": "integer", "minimum": 0 },
+    "total_playtime_seconds": { "type": "integer", "minimum": 0 },
+    "contributing_players": {
+      "type": "integer", "minimum": 0,
+      "description": "Jugadores distintos que han escrito en este shard. Util para detectar un reparto de shards desequilibrado."
+    },
+
+    "updated_at": { "$ref": "_common.json#/$defs/epochMillis" }
+  },
+  "examples": [
+    {
+      "PK": "SQUAD#1b2c3d4e-5f60-4718-8293-aabbccddeeff",
+      "SK": "STATS#S3#SHARD#4",
+      "entity_type": "SQUAD_STATS_SHARD",
+      "entity_version": 1,
+      "season": 3,
+      "shard_id": 4,
+      "invasions_repelled": 118,
+      "invasions_failed": 23,
+      "total_damage_dealt": 4820115,
+      "total_playtime_seconds": 512300,
+      "contributing_players": 3,
+      "updated_at": 1788220800000
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+# Godot Project Configuration
+[application]
+
+config/name="Anime Pixel AR"
+run/main_scene="res://core/main.tscn"
+config/icon="res://icon.png"
+
+[display]
+
+window/size/width=1920
+window/size/height=1080
+window/size/mode=2
+window/size/resizable=true
+
+[input]
+
+camera_up={
+"deadzone": 0.5,
+"events": [
+"ScreenDrag"
+]
+}
+camera_down={
+"deadzone": 0.5,
+"events": [
+"ScreenDrag"
+]
+}
+camera_left={
+"deadzone": 0.5,
+"events": [
+"ScreenDrag"
+]
+}
+camera_right={
+"deadzone": 0.5,
+"events": [
+"ScreenDrag"
+]
+}
+zoom_in={
+"deadzone": 0.5,
+"events": [
+"InputEventMagnifyGesture"
+]
+}
+zoom_out={
+"deadzone": 0.5,
+"events": [
+"InputEventMagnifyGesture"
+]
+}
+
+[rendering]
+
+renderer/rendering_method="Forward+"
+renderer/rendering_method.mobile="Forward+"
+
+environment/default_environment="res://default_env.tres"
+
+[core]
+
+texture_atlas/texture_size=4096
+
+[debug]
+
+ profiler/frame_time_limit=33.3

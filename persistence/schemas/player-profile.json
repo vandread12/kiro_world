@@ -1,0 +1,120 @@
+{
+  "title": "PlayerProfile",
+  "description": "Perfil raiz del jugador. PK=PLAYER#<uuid>, SK=PROFILE. Se lee en MATCH_JOIN dentro de la misma Query que inventario y monedas.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "PK",
+    "SK",
+    "entity_type",
+    "entity_version",
+    "version",
+    "display_name",
+    "created_at",
+    "updated_at",
+    "progression",
+    "flags"
+  ],
+  "properties": {
+    "PK": { "$ref": "_common.json#/$defs/playerPK" },
+    "SK": { "const": "PROFILE" },
+    "entity_type": { "const": "PROFILE" },
+    "entity_version": { "$ref": "_common.json#/$defs/schemaVersion" },
+    "version": { "$ref": "_common.json#/$defs/lockVersion" },
+
+    "display_name": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 16,
+      "pattern": "^[A-Za-z0-9_]+$"
+    },
+    "created_at": { "$ref": "_common.json#/$defs/epochMillis" },
+    "updated_at": { "$ref": "_common.json#/$defs/epochMillis" },
+    "last_login_at": { "$ref": "_common.json#/$defs/epochMillis" },
+
+    "progression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "xp", "prestige"],
+      "properties": {
+        "level": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "xp": { "type": "integer", "minimum": 0 },
+        "xp_to_next": { "type": "integer", "minimum": 0 },
+        "prestige": { "type": "integer", "minimum": 0, "maximum": 10 }
+      }
+    },
+
+    "loadout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary_style"],
+      "properties": {
+        "primary_style": { "$ref": "_common.json#/$defs/combatStyle" },
+        "secondary_style": { "$ref": "_common.json#/$defs/combatStyle" },
+        "equipped": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^ITEM#[a-z0-9_]{3,48}#[0-9a-f]{8}$",
+            "description": "Sort Key del InventoryItem equipado. Referencia debil: el repository layer valida que el item exista y su state sea EQUIPPED."
+          },
+          "description": "Array acotado a 8 slots a proposito. Es el unico array del modelo con cota fija; el inventario completo NO vive aqui."
+        }
+      }
+    },
+
+    "squad_ref": { "$ref": "_common.json#/$defs/squadPK" },
+
+    "active_session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["match_id", "expires_at"],
+      "properties": {
+        "match_id": { "type": "string", "pattern": "^m_[0-9a-f]{6,16}$" },
+        "server_id": { "type": "string", "maxLength": 64 },
+        "expires_at": { "$ref": "_common.json#/$defs/epochMillis" }
+      },
+      "description": "Lease de sesion. Escrito en MATCH_JOIN con ConditionExpression: attribute_not_exists(active_session) OR active_session.expires_at < :now. Garantiza un unico escritor logico del inventario y cierra el exploit de doble consumo en partidas simultaneas."
+    },
+
+    "flags": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["banned"],
+      "properties": {
+        "banned": { "type": "boolean" },
+        "shadow_flagged": {
+          "type": "boolean",
+          "description": "Marcado por el job antifraude del Lakehouse. No se comunica al cliente."
+        },
+        "trade_locked_until": { "$ref": "_common.json#/$defs/epochMillis" }
+      }
+    }
+  },
+
+  "$comment": "El perfil NO escribe gsi1pk/gsi1sk. GSI1 es un indice esparso reservado al inventario (ITEMDEF# -> propietarios). La consulta 'a que escuadron pertenece este jugador' se resuelve con squad_ref, que ya viene en la Query de MATCH_JOIN.",
+
+  "examples": [
+    {
+      "PK": "PLAYER#7f3a9c21-4e88-4b0a-9d13-6ac2f0e51b77",
+      "SK": "PROFILE",
+      "entity_type": "PROFILE",
+      "entity_version": 1,
+      "version": 42,
+      "display_name": "NeonRonin",
+      "created_at": 1788048000000,
+      "updated_at": 1788220800000,
+      "last_login_at": 1788220800000,
+      "progression": { "level": 27, "xp": 184320, "xp_to_next": 12800, "prestige": 1 },
+      "loadout": {
+        "primary_style": "STRIKING",
+        "secondary_style": "CLINCH",
+        "equipped": ["ITEM#gauntlet_mk2#a91f4d02", "ITEM#visor_neon#c3d0118e"]
+      },
+      "squad_ref": "SQUAD#1b2c3d4e-5f60-4718-8293-aabbccddeeff",
+      "flags": { "banned": false, "shadow_flagged": false }
+    }
+  ]
+}

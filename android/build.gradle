@@ -1,0 +1,70 @@
+// build.gradle
+// Configuración de build para Android
+
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 33
+    ndkVersion '25.1.8937393'
+    
+    defaultConfig {
+        applicationId "com.animepixel.ar"
+        minSdkVersion 29  // Android 10 (ARCore required)
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.0"
+        
+        // ABI filters
+        ndk {
+            abiFilters 'arm64-v8a', 'armeabi-v7a'
+        }
+        
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_shared'
+            }
+        }
+    }
+    
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            debuggable true
+        }
+    }
+    
+    externalNativeBuild {
+        cmake {
+            path file('data/arcore_bridge/CMakeLists.txt')
+            version '3.22.1'
+        }
+    }
+    
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/README.md'
+        exclude 'META-INF/\*.kotlin_module'
+    }
+}
+
+dependencies {
+    implementation 'com.google.ar:core:1.35.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    
+    // TensorFlow Lite
+    implementation 'org.tensorflow:tensorflow-lite:2.13.0'
+    implementation 'org.tensorflow:tensorflow-lite-select-tf-ops:2.13.0'
+    
+    // NNAPI delegate
+    implementation 'org.tensorflow:tensorflow-lite.nnapi:2.13.0'
+    
+    // Godot Android
+    implementation fileTree(dir: '../lib', include: ['*.jar'])
+}

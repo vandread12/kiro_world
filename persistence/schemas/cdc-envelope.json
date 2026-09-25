@@ -1,0 +1,48 @@
+{
+  "title": "CdcEnvelope (capa bronze del Lakehouse)",
+  "description": "Forma plana que el Lambda de transformacion de Firehose emite a S3. Las columnas de esta entidad deben coincidir exactamente con las declaradas en el storage_descriptor de la tabla Glue en analytics/main.tf; una divergencia rompe la conversion a Parquet en silencio y los registros caen en el prefijo de error.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["event_id","event_name","event_ts","table_name","pk","sk","entity_type"],
+  "properties": {
+    "event_id":   { "type": "string" },
+    "event_name": { "type": "string", "enum": ["INSERT","MODIFY","REMOVE"] },
+    "event_ts":   { "type": "integer", "description": "ApproximateCreationDateTime en milisegundos." },
+    "table_name": { "type": "string" },
+    "pk":         { "type": "string" },
+    "sk":         { "type": "string" },
+    "entity_type": {
+      "type": "string",
+      "enum": [
+        "PROFILE","PLAYER_STATS","ITEM","CURRENCY",
+        "SQUAD","SQUAD_STATS_SHARD","MEMBER","MATCH","TRADE","UNKNOWN"
+      ],
+      "description": "IDEM no aparece: los guardianes de idempotencia se descartan en el Lambda. UNKNOWN existe para que un entity_type nuevo no cause perdida de datos."
+    },
+    "new_image": {
+      "type": ["string","null"],
+      "description": "Documento posterior al cambio, JSON serializado. Null en REMOVE."
+    },
+    "old_image": {
+      "type": ["string","null"],
+      "description": "Documento anterior. Requiere StreamViewType NEW_AND_OLD_IMAGES: sin el no se puede calcular el delta de un trade ni auditar una duplicacion."
+    },
+    "sequence_number": { "type": ["string","null"] },
+    "size_bytes":      { "type": ["integer","null"] }
+  },
+  "examples": [
+    {
+      "event_id":    "3f2a91c0e4b7d8a5",
+      "event_name":  "MODIFY",
+      "event_ts":    1788220800123,
+      "table_name":  "pixelft-core-prod",
+      "pk": "PLAYER#7f3a9c21-4e88-4b0a-9d13-6ac2f0e51b77",
+      "sk": "ITEM#potion_medkit#STACK",
+      "entity_type": "ITEM",
+      "new_image": "{\"quantity\":5,\"version\":18,\"state\":\"OWNED\"}",
+      "old_image": "{\"quantity\":6,\"version\":17,\"state\":\"OWNED\"}",
+      "sequence_number": "49590338271490256608559692538361571095921575989136588898",
+      "size_bytes": 214
+    }
+  ]
+}
